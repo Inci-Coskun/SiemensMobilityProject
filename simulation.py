@@ -267,14 +267,14 @@ class PiezoEnergyPredictor:
         # Weighted random location selection
         location_weights = {'Center': 0.5, 'Edge': 0.3, 'Corner': 0.2}
         location = random.choices(list(location_weights.keys()), 
-                                weights=list(location_weights.values()))[0]
+                                 weights=list(location_weights.values()))[0]
         
         location_center = 1 if location == 'Center' else 0
         location_edge = 1 if location == 'Edge' else 0
         
         # Create feature array with proper naming
         features = pd.DataFrame([[base_voltage, current, avg_weight, location_center, location_edge]], 
-                              columns=self.feature_names)
+                                columns=self.feature_names)
         
         predicted_power_mw = max(0, self.model.predict(features)[0])
         
@@ -285,7 +285,7 @@ class PiezoEnergyPredictor:
         
         total_power_w = (predicted_power_mw / 1000) * num_tiles * footfall_efficiency
         
-        return max(total_power_w, 0.1)  # Minimum baseline power
+        return total_power_w
 
 class SystemConsumptionPredictor:
     def __init__(self):
@@ -971,4 +971,5 @@ def app_main():
 if __name__ == "__main__":
 
     app_main()
+
 
