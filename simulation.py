@@ -285,7 +285,7 @@ class PiezoEnergyPredictor:
         
         total_power_w = (predicted_power_mw / 1000) * num_tiles * footfall_efficiency
         
-        return max(total_power_w, 0.1)  # Minimum baseline power
+       return total_power_w
 
 class SystemConsumptionPredictor:
     def __init__(self):
@@ -971,4 +971,5 @@ def app_main():
 if __name__ == "__main__":
 
     app_main()
+
 
