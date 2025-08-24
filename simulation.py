@@ -206,8 +206,7 @@ class EnergySourceData:
         self.health_status = health_status
 
 class SystemLoadData:
-    def __init__(self, system_id, base_power, predicted_power, min_power,
-                 max_power, priority, status, efficiency):
+    def __init__(self, system_id, base_power, predicted_power, min_power, max_power, priority, status, efficiency):
         self.system_id = system_id
         self.base_power = base_power
         self.predicted_power = predicted_power
@@ -262,31 +261,31 @@ class PiezoEnergyPredictor:
             self.train_model()
             
         # Enhanced footfall to energy conversion with better scaling
-        base_voltage = min(footfall * 0.15 + random.uniform(-1, 3), 55)
-        current = 50 + random.uniform(-3, 8)
+        base_voltage = min(footfall * 0.15 + random.uniform(-1, 3), 55)  # Better scaling
+        current = 50 + random.uniform(-3, 8)  # More realistic current variation
         
         # Weighted random location selection
         location_weights = {'Center': 0.5, 'Edge': 0.3, 'Corner': 0.2}
-        location = random.choices(list(location_weights.keys()),
-                                 weights=list(location_weights.values()))[0]
+        location = random.choices(list(location_weights.keys()), 
+                                weights=list(location_weights.values()))[0]
         
         location_center = 1 if location == 'Center' else 0
         location_edge = 1 if location == 'Edge' else 0
         
         # Create feature array with proper naming
-        features = pd.DataFrame([[base_voltage, current, avg_weight, location_center, location_edge]],
-                                columns=self.feature_names)
+        features = pd.DataFrame([[base_voltage, current, avg_weight, location_center, location_edge]], 
+                              columns=self.feature_names)
         
         predicted_power_mw = max(0, self.model.predict(features)[0])
         
         # Enhanced scaling: convert mW to W and apply footfall multiplier
         # Multiply by number of piezo tiles (assume 10-20 tiles in station)
         num_tiles = 15
-        footfall_efficiency = min(1.0, footfall / 200.0)
+        footfall_efficiency = min(1.0, footfall / 200.0)  # Efficiency decreases with overcrowding
         
         total_power_w = (predicted_power_mw / 1000) * num_tiles * footfall_efficiency
         
-        return total_power_w
+        return max(total_power_w, 0.1)  # Minimum baseline power
 
 class SystemConsumptionPredictor:
     def __init__(self):
@@ -312,32 +311,33 @@ class SystemConsumptionPredictor:
             # Use Random Forest for better performance
             self.models[system] = RandomForestRegressor(n_estimators=50, random_state=42)
             self.models[system].fit(X, y)
-            self.is_trained = True
             
+        self.is_trained = True
+        
     def predict_consumption(self, context_data):
         if not self.is_trained:
             self.train_models()
-        
+            
         hour = context_data.time_of_day.hour
         footfall = context_data.footfall
         ambient_temp = context_data.ambient_temp
         is_weekend = 1 if context_data.day_type == 'Weekend' else 0
         
         # Create feature DataFrame with proper naming
-        features = pd.DataFrame([[hour, footfall, ambient_temp, is_weekend]],
-                                columns=self.feature_names)
+        features = pd.DataFrame([[hour, footfall, ambient_temp, is_weekend]], 
+                              columns=self.feature_names)
         
         predictions = {}
         for system_name, model in self.models.items():
             pred = model.predict(features)[0]
             predictions[system_name] = max(0, pred)  # Prevent negative values
-        
+            
         return predictions
 
 class SmartAllocationAgent:
     def __init__(self):
         self.priority_weights = {"Critical": 1.0, "High": 0.8, "Medium": 0.6, "Low": 0.4}
-    
+        
     def allocate_power(self, available_power, systems, context_data):
         allocated_power = {}
         remaining_power = available_power
@@ -347,9 +347,12 @@ class SmartAllocationAgent:
         rush_hour_factor = 1.1 if context_data.footfall > 400 else 1.0
         
         # Sort by priority
-        sorted_systems = sorted(systems, key=lambda x: self.priority_weights.get(x.priority, 0), reverse=True)
+        sorted_systems = sorted(systems, 
+                              key=lambda x: self.priority_weights.get(x.priority, 0), 
+                              reverse=True)
         
         allocation_log = []
+        
         for system in sorted_systems:
             required_power = system.predicted_power * emergency_factor * rush_hour_factor
             
@@ -367,7 +370,7 @@ class SmartAllocationAgent:
                 allocated_power[system.system_id] = 0
                 efficiency = 0
                 status = "❌ Offline"
-            
+                
             allocation_log.append({
                 "System": system.system_id,
                 "Priority": system.priority,
@@ -382,50 +385,554 @@ class SmartAllocationAgent:
 # --- Station Schedule ---
 STATION_SCHEDULE = [
     {"time": "06:00", "event_type": "Station Opening", "footfall_range": (100, 200)},
-    {"time": "07:15", "event_type": "Train 101 Arrival", "footfall_range": (300, 450)},
-    {"time": "08:30", "event_type": "Morning Peak", "footfall_range": (400, 600)},
-    {"time": "12:00", "event_type": "Lunchtime Rush", "footfall_range": (350, 500)},
-    {"time": "17:00", "event_type": "Evening Peak", "footfall_range": (500, 700)},
-    {"time": "19:45", "event_type": "Train 205 Departure", "footfall_range": (250, 350)},
-    {"time": "22:00", "event_type": "Night Closure", "footfall_range": (50, 150)},
+    {"time": "07:15", "event_type": "Train 101 Arrival", "footfall_range": (400, 600)},
+    {"time": "07:20", "event_type": "Train 101 Departure", "footfall_range": (80, 180)},
+    {"time": "08:00", "event_type": "Train 102 Arrival", "footfall_range": (420, 650)},
+    {"time": "08:05", "event_type": "Train 102 Departure", "footfall_range": (100, 200)},
+    {"time": "10:30", "event_type": "Maintenance", "footfall_range": (50, 100)},
+    {"time": "12:30", "event_type": "Train 201 Arrival", "footfall_range": (380, 580)},
+    {"time": "12:35", "event_type": "Train 201 Departure", "footfall_range": (80, 180)},
+    {"time": "14:00", "event_type": "Cleaning", "footfall_range": (60, 120)},
+    {"time": "16:45", "event_type": "Train 301 Arrival", "footfall_range": (450, 700)},
+    {"time": "16:50", "event_type": "Train 301 Departure", "footfall_range": (120, 220)},
+    {"time": "17:30", "event_type": "Train 302 Arrival", "footfall_range": (480, 720)},
+    {"time": "17:35", "event_type": "Train 302 Departure", "footfall_range": (100, 200)},
+    {"time": "21:00", "event_type": "Train 401 Arrival", "footfall_range": (300, 500)},
+    {"time": "21:05", "event_type": "Train 401 Departure", "footfall_range": (80, 180)},
+    {"time": "00:00", "event_type": "Station Closure", "footfall_range": (0, 20)},
 ]
 
-# --- Streamlit App ---
-def main():
-    st.set_page_config(layout="wide")
-    local_css()
+# --- Mock Data Generators ---
+def get_context_data(sim_time):
+    day_type = "Weekday" if sim_time.weekday() < 5 else "Weekend"
+    
+    event = "Normal Operation"
+    footfall_min = 80
+    footfall_max = 250
+    
+    # Check scheduled events
+    for scheduled_event in STATION_SCHEDULE:
+        event_time_str = scheduled_event['time']
+        event_hour, event_minute = map(int, event_time_str.split(':'))
+        event_dt = sim_time.replace(hour=event_hour, minute=event_minute, second=0, microsecond=0)
+        time_diff = abs((sim_time - event_dt).total_seconds())
+        
+        if time_diff < 300:  # 5 minute tolerance
+            event = scheduled_event['event_type']
+            footfall_min, footfall_max = scheduled_event['footfall_range']
+            break
+    
+    footfall = random.randint(footfall_min, footfall_max)
+    ambient_temp = 18 + random.uniform(-2, 8)  # 16-26°C range
+    
+    return ContextFactors(footfall, sim_time, day_type, event, ambient_temp)
 
-    if "simulation_started" not in st.session_state:
-        st.session_state.simulation_started = False
+def generate_system_loads(context_data, consumption_predictor):
+    # AI model consumption prediction
+    predictions = consumption_predictor.predict_consumption(context_data)
+    
+    systems = []
+    
+    # CCTV System
+    systems.append(SystemLoadData(
+        system_id="CCTV Security",
+        base_power=predictions['cctv_power'],
+        predicted_power=predictions['cctv_power'] * (1 + random.uniform(-0.1, 0.1)),
+        min_power=predictions['cctv_power'] * 0.7,
+        max_power=predictions['cctv_power'] * 1.3,
+        priority="Critical",
+        status="Active",
+        efficiency=0.95
+    ))
+    
+    # Information Panels
+    systems.append(SystemLoadData(
+        system_id="Info Panels",
+        base_power=predictions['panels_power'],
+        predicted_power=predictions['panels_power'] * (1 + random.uniform(-0.15, 0.15)),
+        min_power=predictions['panels_power'] * 0.5,
+        max_power=predictions['panels_power'] * 1.2,
+        priority="High",
+        status="Active",
+        efficiency=0.88
+    ))
+    
+    # Ventilation System
+    systems.append(SystemLoadData(
+        system_id="Ventilation",
+        base_power=predictions['ventilation_power'],
+        predicted_power=predictions['ventilation_power'] * (1 + random.uniform(-0.2, 0.2)),
+        min_power=predictions['ventilation_power'] * 0.6,
+        max_power=predictions['ventilation_power'] * 1.4,
+        priority="Medium",
+        status="Active",
+        efficiency=0.82
+    ))
+    
+    # Ticket Booth
+    systems.append(SystemLoadData(
+        system_id="Ticket Booth",
+        base_power=predictions['ticket_booth_power'],
+        predicted_power=predictions['ticket_booth_power'] * (1 + random.uniform(-0.1, 0.1)),
+        min_power=predictions['ticket_booth_power'] * 0.8,
+        max_power=predictions['ticket_booth_power'] * 1.1,
+        priority="High",
+        status="Active",
+        efficiency=0.92
+    ))
+    
+    return systems
+
+# --- Controller ---
+class AIController:
+    def __init__(self):
+        self.piezo_predictor = PiezoEnergyPredictor()
+        self.consumption_predictor = SystemConsumptionPredictor()
+        self.allocation_agent = SmartAllocationAgent()
+        
+        # Train models
+        if "models_trained" not in st.session_state:
+            with st.spinner("Training AI models..."):
+                self.piezo_predictor.train_model()
+                self.consumption_predictor.train_models()
+                st.session_state.models_trained = True
+                st.session_state.piezo_mae = self.piezo_predictor.mae
+                st.session_state.piezo_r2 = self.piezo_predictor.r2
+    
+    def run_control_loop(self):
+        if st.session_state.running:
+            # Time control and reset
+            if st.session_state.simulated_time.hour >= 24:
+                st.session_state.simulated_time = st.session_state.simulated_time.replace(
+                    hour=6, minute=0, second=0) + timedelta(days=1)
+            
+            # Get context data
+            context_data = get_context_data(st.session_state.simulated_time)
+            
+            # Predict piezoelectric energy generation
+            predicted_energy = self.piezo_predictor.predict_power_from_footfall(context_data.footfall)
+            
+            # Generate system loads
+            system_loads = generate_system_loads(context_data, self.consumption_predictor)
+            
+            # Total available power
+            total_available = predicted_energy + st.session_state.battery_energy
+            
+            # Power allocation
+            allocated_power, remaining_power, allocation_log = self.allocation_agent.allocate_power(
+                total_available, system_loads, context_data
+            )
+            
+            # Update battery with energy management
+            energy_generation_rate = predicted_energy * 0.85  # 15% conversion loss
+            battery_charge_rate = min(remaining_power * 0.1, 5.0)  # Max 5W charging rate
+            st.session_state.battery_energy = min(
+                st.session_state.battery_energy + battery_charge_rate, 
+                100.0  # Max battery capacity
+            )
+            
+            # --- Main Display Area ---
+            st.markdown("---")
+            
+            # Energy Source Status
+            st.markdown(
+                f"""
+                <div class="energy-source">
+                    <h3>🔋 Piezoelectric Energy Source</h3>
+                    <p><strong>Instantaneous Generation:</strong> {predicted_energy:.2f} W</p>
+                    <p><strong>Battery Storage:</strong> {st.session_state.battery_energy:.2f} W</p>
+                    <p><strong>Total Available:</strong> {total_available:.2f} W</p>
+                    <p><strong>Generation Efficiency:</strong> 85%</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            
+            # System Status
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.subheader("📊 System Power Allocation")
+                allocation_df = pd.DataFrame(allocation_log)
+                st.dataframe(allocation_df, use_container_width=True)
+                
+                # Power balance indicator
+                total_allocated = sum(allocated_power.values())
+                if total_allocated <= total_available * 0.8:
+                    st.success(f"✅ Power Balance: Optimal ({total_allocated:.1f}W / {total_available:.1f}W)")
+                elif total_allocated <= total_available:
+                    st.warning(f"⚠️ Power Balance: Tight ({total_allocated:.1f}W / {total_available:.1f}W)")
+                else:
+                    st.error(f"❌ Power Balance: Deficit ({total_allocated:.1f}W / {total_available:.1f}W)")
+                
+            with col2:
+                st.subheader("🌡️ Environmental Factors")
+                st.metric("Pedestrian Traffic", f"{context_data.footfall} people")
+                st.metric("Ambient Temperature", f"{context_data.ambient_temp:.1f}°C")
+                st.metric("Current Event", context_data.event_triggers)
+                st.metric("Day Type", context_data.day_type)
+                
+                # Energy efficiency indicators
+                generation_efficiency = (predicted_energy / max(context_data.footfall * 0.01, 0.1)) * 100
+                st.metric("Generation Efficiency", f"{generation_efficiency:.1f}%")
+            
+            # Detailed Log
+            with st.expander("🔍 Detailed AI Analysis Log", expanded=False):
+                st.info("🤖 Piezoelectric Energy Prediction Model Running...")
+                st.write(f"Model Performance: MAE={st.session_state.piezo_mae:.3f}, R²={st.session_state.piezo_r2:.3f}")
+                st.write(f"Footfall: {context_data.footfall} → Predicted Energy: {predicted_energy:.2f}W")
+                st.write(f"Piezo Tiles Active: 15 units")
+                st.write(f"Footfall Efficiency: {min(1.0, context_data.footfall / 200.0)*100:.0f}%")
+                
+                st.info("🏭 System Consumption Prediction Model Running...")
+                for system in system_loads:
+                    st.write(f"- {system.system_id}: {system.predicted_power:.1f}W (Priority: {system.priority})")
+                
+                st.info("🧠 Smart Allocation Agent Making Decisions...")
+                st.write(f"Total Available Power: {total_available:.2f}W")
+                #st.write(f"Emergency Factor: {emergency_factor:.1f}x")
+                #st.write(f"Rush Hour Factor: {rush_hour_factor:.1f}x")
+                st.write("Allocation Strategy: Priority-based optimization with efficiency consideration")
+            
+            # Historical data logging
+            st.session_state.historical_data.append({
+                "timestamp": st.session_state.simulated_time.strftime('%Y-%m-%d %H:%M:%S'),
+                "footfall": context_data.footfall,
+                "event": context_data.event_triggers,
+                "energy_generated": predicted_energy,
+                "total_available": total_available,
+                "total_allocated": sum(allocated_power.values()),
+                "remaining_power": remaining_power,
+                "ambient_temp": context_data.ambient_temp,
+                "battery_level": st.session_state.battery_energy
+            })
+            
+            # Simulation speed control
+            if "Arrival" in context_data.event_triggers or "Departure" in context_data.event_triggers:
+                sleep_time = 2
+                time_skip = 180  # 3 minutes
+            elif "Closure" in context_data.event_triggers:
+                sleep_time = 8
+                time_skip = 1800  # 30 minutes
+            else:
+                sleep_time = 4
+                time_skip = 300  # 5 minutes
+            
+            # Update simulation time
+            st.session_state.simulated_time += timedelta(seconds=time_skip)
+            
+            time.sleep(sleep_time)
+            st.rerun()
+        else:
+            st.info("⏸️ Simulation paused. Click 'Start' button to resume.")
+            
+            if st.session_state.historical_data:
+                with st.expander("📈 Complete Simulation Results", expanded=False):
+                    # Display historical data as table
+                    history_df = pd.DataFrame(st.session_state.historical_data)
+                    st.dataframe(history_df, use_container_width=True)
+                    
+                    # Statistics
+                    st.subheader("📊 Simulation Statistics")
+                    col1, col2, col3, col4 = st.columns(4)
+                    
+                    with col1:
+                        avg_generation = history_df['energy_generated'].mean()
+                        st.metric("Avg Energy Generation", f"{avg_generation:.2f}W")
+                        
+                    with col2:
+                        max_footfall = history_df['footfall'].max()
+                        st.metric("Max Pedestrian Traffic", f"{max_footfall} people")
+                        
+                    with col3:
+                        total_generated = history_df['energy_generated'].sum()
+                        total_consumed = history_df['total_allocated'].sum()
+                        efficiency = (total_consumed / total_generated) * 100 if total_generated > 0 else 0
+                        st.metric("Energy Usage Efficiency", f"{efficiency:.1f}%")
+                        
+                    with col4:
+                        final_battery = history_df['battery_level'].iloc[-1]
+                        st.metric("Final Battery Level", f"{final_battery:.1f}W")
+                    
+                    # Energy flow chart
+                    if len(history_df) > 1:
+                        st.subheader("📈 Energy Flow Over Time")
+                        chart_data = history_df[['timestamp', 'energy_generated', 'total_allocated', 'battery_level']].copy()
+                        chart_data['timestamp'] = pd.to_datetime(chart_data['timestamp'])
+                        chart_data.set_index('timestamp', inplace=True)
+                        st.line_chart(chart_data)
+                    
+                    if st.button("🗑️ Clear History", type="secondary"):
+                        st.session_state.historical_data = []
+                        st.session_state.battery_energy = 50.0
+                        st.session_state.simulated_time = datetime(2025, 8, 18, 6, 0, 0)
+                        st.rerun()
+
+def get_next_event(sim_time):
+    """Find the next scheduled event."""
+    for event in STATION_SCHEDULE:
+        event_time_str = event['time']
+        event_hour, event_minute = map(int, event_time_str.split(':'))
+        event_dt = sim_time.replace(hour=event_hour, minute=event_minute, second=0)
+        
+        if event_dt > sim_time:
+            return f"{event['event_type']} - {event_time_str}"
+    
+    return "No more events today"
+
+# --- Page Functions ---
+def home_page():
+    """Home page content."""
+    st.header("🔋 What is Piezoelectric Energy?")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.image(
+            "https://earimediaprodweb.azurewebsites.net/Api/v1/Multimedia/51e01af1-0782-49a1-9415-0d44220dd5d2/Rendition/low-res/Content/Public",
+            caption="Piezoelectric energy concept",
+        )
+    
+    with col2:
+        st.write(
+            "Piezoelectric materials generate electrical charge when mechanical stress is applied to them. "
+            "Simply put, they can convert human footsteps into usable electrical energy. "
+            "This simulation demonstrates a micro-grid system that harvests this energy from a busy environment "
+            "like a train station and intelligently distributes it to various systems."
+        )
+
+    st.markdown("---")
+    
+    st.header("📱 About This Application")
+    st.write(
+        "This application is a real-time simulation of an AI-powered micro-grid system. "
+        "It demonstrates how piezoelectric energy harvesting can be efficiently managed using "
+        "machine learning models and intelligent power allocation algorithms."
+    )
+    
+    st.markdown("### 🎯 User Guide:")
+    st.markdown("- **🏠 Home:** You are here! Provides basic concepts and application overview.")
+    st.markdown("- **⚡ Simulation:** The heart of the application. Click 'Start Simulation' to see real-time AI controller power allocation decisions.")
+    st.markdown("- **📅 Station Schedule:** Shows the static schedule of daily activities like train arrivals and maintenance.")
+    st.markdown("- **🤖 AI Models:** Details and performance metrics of the machine learning models used.")
+    
+    st.markdown("### 🔬 Technical Features:")
+    st.markdown("- **Real-time ML Prediction:** Linear regression for energy generation, Random Forest for consumption")
+    st.markdown("- **Priority-based Allocation:** Critical systems (CCTV) get power first")
+    st.markdown("- **Dynamic Adaptation:** AI adjusts to changing footfall and environmental conditions")
+    st.markdown("- **Battery Management:** Intelligent charging and discharge optimization")
+
+def station_schedule_page():
+    """Station schedule page."""
+    st.header("📅 Daily Station Schedule")
+    st.write(
+        "Static schedule of all important station events that the AI uses to predict energy demand surges. "
+        "The simulation follows this schedule to create realistic event patterns."
+    )
+    
+    schedule_df = pd.DataFrame(STATION_SCHEDULE)
+    schedule_df.rename(columns={
+        'time': 'Time', 
+        'event_type': 'Event Type', 
+        'footfall_range': 'Pedestrian Traffic Range'
+    }, inplace=True)
+    
+    st.dataframe(schedule_df, use_container_width=True)
+    
+    st.markdown("---")
+    st.subheader("📊 Schedule Analysis")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("**🚂 Peak Hours:**")
+        st.write("- 07:15-08:05: Morning rush")
+        st.write("- 12:30-12:35: Lunch traffic") 
+        st.write("- 16:45-17:35: Evening rush")
+        
+    with col2:
+        st.markdown("**🔧 Maintenance Hours:**")
+        st.write("- 10:30: Scheduled cleaning")
+        st.write("- 14:00: General maintenance")
+        st.write("- 00:00-06:00: Station closed")
+    
+    st.markdown("---")
+    st.subheader("📈 Traffic Pattern Insights")
+    
+    # Create a simple visualization of expected traffic
+    schedule_data = []
+    for event in STATION_SCHEDULE:
+        hour = int(event['time'].split(':')[0])
+        avg_footfall = sum(event['footfall_range']) / 2
+        schedule_data.append({'Hour': hour, 'Expected Footfall': avg_footfall})
+    
+    schedule_chart_df = pd.DataFrame(schedule_data)
+    st.bar_chart(schedule_chart_df.set_index('Hour'))
+
+def ai_models_page():
+    """AI models page."""
+    st.header("🤖 AI Models and Performance")
+    
+    st.markdown("### 1. 🔋 Piezoelectric Energy Prediction Model")
+    st.write("**Model Type:** Linear Regression")
+    st.write("**Purpose:** Predict piezoelectric energy generation from pedestrian traffic")
+    
+    if "piezo_mae" in st.session_state and "piezo_r2" in st.session_state:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Mean Absolute Error (MAE)", f"{st.session_state.piezo_mae:.3f}")
+        with col2:
+            st.metric("R² Score", f"{st.session_state.piezo_r2:.3f}")
+    
+    st.markdown("**🔧 Features:**")
+    st.write("- Voltage (V), Current (μA), Weight (kg)")
+    st.write("- Step Location (Center/Edge/Corner)")
+    st.write("- Footfall multiplier effect")
+    st.write("- 15 piezoelectric tiles simulation")
+    
+    st.markdown("**⚡ Energy Conversion Logic:**")
+    st.code("""
+# Enhanced energy conversion with realistic scaling
+base_voltage = footfall * 0.15 + noise
+predicted_power_mw = model.predict(features)
+total_power_w = (predicted_power_mw / 1000) * num_tiles * efficiency
+""")
+    
+    st.markdown("---")
+    
+    st.markdown("### 2. 🏭 System Consumption Prediction Model")
+    st.write("**Model Type:** Random Forest Regression")
+    st.write("**Purpose:** Predict CCTV, panels, ventilation, and ticket booth consumption")
+    
+    st.markdown("**🔧 Features:**")
+    st.write("- Hour, Pedestrian traffic, Ambient temperature")
+    st.write("- Day type (Weekday/Weekend)")
+    st.write("- System-specific optimization")
+    
+    st.markdown("**🎯 Model Benefits:**")
+    st.write("- **Non-linear patterns:** Random Forest captures complex relationships")
+    st.write("- **Feature importance:** Automatically weighs most relevant factors")
+    st.write("- **Robust predictions:** Handles outliers and missing data well")
+    
+    st.markdown("---")
+    
+    st.markdown("### 3. 🧠 Smart Power Allocation Agent")
+    st.write("**Model Type:** Rule-based + Priority Optimization")
+    st.write("**Purpose:** Optimally distribute available power based on system priorities")
+    
+    st.markdown("**⚖️ Priority System:**")
+    st.write("- **Critical (CCTV):** 100% weight - Security system")
+    st.write("- **High (Panels, Ticket):** 80% weight - Essential services") 
+    st.write("- **Medium (Ventilation):** 60% weight - Comfort system")
+    
+    st.markdown("**🔄 Dynamic Adjustments:**")
+    st.write("- **Emergency factor:** 1.3x power allocation during emergencies")
+    st.write("- **Rush hour factor:** 1.1x during high traffic periods (>400 people)")
+    st.write("- **Efficiency tracking:** Real-time system performance monitoring")
+    
+    # Sample data display
+    if st.button("📊 Show Sample Datasets"):
+        st.markdown("#### Piezoelectric Sample Data:")
+        sample_piezo = pd.read_csv(io.StringIO(csv_data)).head(10)
+        st.dataframe(sample_piezo)
+        
+        st.markdown("#### System Consumption Sample Data:")
+        sample_consumption = pd.read_csv(io.StringIO(system_consumption_data)).head(10)
+        st.dataframe(sample_consumption)
+
+def simulation_page():
+    """Simulation page."""
+    st.header("⚡ Real-Time Simulation")
+    st.markdown("This simulation shows the AI controller's real-time power allocation decisions.")
+    st.markdown("---")
+    
+    # Session state initialization
+    if "running" not in st.session_state:
+        st.session_state.running = False
     if "battery_energy" not in st.session_state:
-        st.session_state.battery_energy = 50.0  # Initial energy in kWh
-    if "footfall_history" not in st.session_state:
-        st.session_state.footfall_history = []
-    if "energy_history" not in st.session_state:
-        st.session_state.energy_history = []
-    if "consumption_history" not in st.session_state:
-        st.session_state.consumption_history = []
-    if "balance_history" not in st.session_state:
-        st.session_state.balance_history = []
-    if "last_update_time" not in st.session_state:
-        st.session_state.last_update_time = datetime.now()
-    if "models_trained" not in st.session_state:
-        st.session_state.models_trained = False
+        st.session_state.battery_energy = 50.0  # Initial battery energy
+    if "historical_data" not in st.session_state:
+        st.session_state.historical_data = []
+    if "simulated_time" not in st.session_state:
+        st.session_state.simulated_time = datetime(2025, 8, 18, 6, 0, 0)
+    
+    # Control buttons
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.session_state.running:
+            if st.button("⏹️ Stop Simulation", type="secondary", use_container_width=True):
+                st.session_state.running = False
+                st.balloons()
+                st.rerun()
+        else:
+            if st.button("▶️ Start Simulation", type="primary", use_container_width=True):
+                st.session_state.running = True
+                st.session_state.simulated_time = datetime(2025, 8, 18, 6, 0, 0)
+                st.session_state.battery_energy = 50.0
+                st.session_state.historical_data = []
+                st.rerun()
+    
+    with col2:
+        if st.button("🔄 Reset System", type="secondary", use_container_width=True):
+            st.session_state.running = False
+            st.session_state.battery_energy = 50.0
+            st.session_state.historical_data = []
+            st.session_state.simulated_time = datetime(2025, 8, 18, 6, 0, 0)
+            st.rerun()
+    
+    with col3:
+        simulation_speed = st.selectbox("⚡ Simulation Speed", ["Slow", "Normal", "Fast"], index=0)
+    
+    # Current status display
+    st.markdown("---")
+    st.subheader("🏢 Station Status")
+    
+    status_col1, status_col2, status_col3, status_col4 = st.columns(4)
+    
+    context_data = get_context_data(st.session_state.simulated_time)
+    
+    with status_col1:
+        st.metric("🕐 Simulation Time", 
+                 st.session_state.simulated_time.strftime("%H:%M:%S"))
+    with status_col2:
+        st.metric("👥 Pedestrian Count", f"{context_data.footfall} people")
+    with status_col3:
+        st.metric("🌡️ Temperature", f"{context_data.ambient_temp:.1f}°C")
+    with status_col4:
+        next_event = get_next_event(st.session_state.simulated_time)
+        st.metric("📋 Next Event", next_event)
+    
+    # Battery status indicator
+    battery_percentage = (st.session_state.battery_energy / 100.0) * 100
+    if battery_percentage > 70:
+        st.success(f"🔋 Battery Status: Excellent ({battery_percentage:.0f}%)")
+    elif battery_percentage > 30:
+        st.warning(f"🔋 Battery Status: Good ({battery_percentage:.0f}%)")
+    else:
+        st.error(f"🔋 Battery Status: Low ({battery_percentage:.0f}%)")
+    
+    # AI Controller execution
+    controller = AIController()
+    controller.run_control_loop()
 
-    # Initialize AI models and agents
-    piezo_predictor = PiezoEnergyPredictor()
-    consumption_predictor = SystemConsumptionPredictor()
-    smart_agent = SmartAllocationAgent()
-
-    st.title("Train Station Smart Micro-Grid Simulation")
+# --- Main Application ---
+def app_main():
+    st.set_page_config(
+        page_title="AI-Powered Piezoelectric Energy",
+        page_icon="⚡",
+        layout="wide",
+    )
+    local_css()
+    
+    st.title("⚡ AI-Powered Piezoelectric Energy Management")
+    st.markdown("*Train Station Smart Micro-Grid Simulation*")
     st.markdown("---")
     
     # Navigation
     with st.sidebar:
         st.subheader("🧭 Navigation")
         page = st.radio("Select Page:", [
-            "🏠 Home",
-            "⚡ Simulation",
+            "🏠 Home", 
+            "⚡ Simulation", 
             "📅 Station Schedule",
             "🤖 AI Models"
         ])
@@ -455,254 +962,13 @@ def main():
     if page == "🏠 Home":
         home_page()
     elif page == "⚡ Simulation":
-        simulation_page(piezo_predictor, consumption_predictor, smart_agent)
+        simulation_page()
     elif page == "📅 Station Schedule":
-        schedule_page()
+        station_schedule_page()
     elif page == "🤖 AI Models":
-        ai_models_page(piezo_predictor, consumption_predictor)
-
-def home_page():
-    st.header("Welcome to the Smart Micro-Grid Simulation")
-    st.write(
-        "This application simulates a train station's micro-grid, managing energy "
-        "from footfall-based piezoelectric sensors and a central battery. "
-        "It uses AI models to predict energy generation and system consumption, "
-        "and a smart agent to allocate power efficiently based on real-time needs and priorities."
-    )
-    st.markdown("---")
-    st.subheader("How It Works:")
-    st.write(
-        "1. **Energy Generation**: Piezoelectric sensors under the station floor convert the kinetic energy of passenger footfall into electrical energy."
-    )
-    st.write(
-        "2. **AI Prediction**: The `PiezoEnergyPredictor` model forecasts the energy generated from footfall data."
-    )
-    st.write(
-        "3. **Consumption Prediction**: The `SystemConsumptionPredictor` model anticipates the power needs of different station systems (e.g., CCTV, ventilation)."
-    )
-    st.write(
-        "4. **Smart Allocation**: The `SmartAllocationAgent` prioritizes and distributes the generated energy and battery power to critical systems first, ensuring continuous operation."
-    )
-    st.write(
-        "5. **Real-time Monitoring**: The simulation page visualizes real-time data on energy generation, consumption, and battery status."
-    )
-
-    st.markdown("---")
-    st.subheader("Simulation Overview:")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.image("https://i.imgur.com/example-image.png", caption="Smart Station Concept")
-    with col2:
-        st.info("Navigate to the **⚡ Simulation** page to start the live simulation and see the micro-grid in action.")
-        st.markdown(
-            """
-            - **See real-time energy flow**
-            - **Monitor battery health**
-            - **View power allocation decisions**
-            - **Explore the impact of footfall**
-            """
-        )
-
-def simulation_page(piezo_predictor, consumption_predictor, smart_agent):
-    st.header("⚡ Live Simulation")
-    st.write(
-        "Control the simulation and watch the smart micro-grid in action. The simulation runs in 30-minute intervals."
-    )
-    
-    st.markdown("---")
-
-    # Simulation controls
-    col1, col2, col3 = st.columns([1, 1, 2])
-    
-    with col1:
-        start_button = st.button("▶️ Start Simulation")
-    with col2:
-        stop_button = st.button("⏹️ Stop Simulation")
-    with col3:
-        st.info("The simulation advances time in 30-minute steps.")
-        
-    if start_button:
-        st.session_state.simulation_started = True
-    if stop_button:
-        st.session_state.simulation_started = False
-        st.info("Simulation stopped.")
-        
-    if st.session_state.simulation_started:
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        
-        # Train models if not already trained
-        if not st.session_state.models_trained:
-            status_text.text("Training AI models...")
-            piezo_predictor.train_model()
-            consumption_predictor.train_models()
-            st.session_state.models_trained = True
-            st.experimental_rerun()  # Rerun to update sidebar status
-            
-        # Simulation loop
-        current_time_str = st.session_state.last_update_time.strftime("%I:%M %p")
-        status_text.text(f"Simulation running... Current Time: {current_time_str}")
-        
-        # Get current context
-        current_footfall, event_triggers = get_footfall_for_time(st.session_state.last_update_time)
-        context = ContextFactors(
-            footfall=current_footfall,
-            time_of_day=st.session_state.last_update_time,
-            day_type="Weekday" if st.session_state.last_update_time.weekday() < 5 else "Weekend",
-            event_triggers=event_triggers,
-            ambient_temp=generate_ambient_temp(st.session_state.last_update_time)
-        )
-        
-        # Predict energy generation and consumption
-        piezo_generation_w = piezo_predictor.predict_power_from_footfall(context.footfall, 65)
-        piezo_generation_kw = piezo_generation_w / 1000.0  # Convert to kW
-        
-        predicted_consumption = consumption_predictor.predict_consumption(context)
-        total_consumption_w = sum(predicted_consumption.values())
-
-        # Define system loads based on predictions and static data
-        systems_to_manage = [
-            SystemLoadData("CCTV", predicted_consumption['cctv_power'], predicted_consumption['cctv_power'], 20.0, 40.0, "High", "Normal", 0.95),
-            SystemLoadData("Lighting Panels", predicted_consumption['panels_power'], predicted_consumption['panels_power'], 10.0, 30.0, "Medium", "Normal", 0.90),
-            SystemLoadData("Ventilation", predicted_consumption['ventilation_power'], predicted_consumption['ventilation_power'], 30.0, 80.0, "Critical", "Normal", 0.85),
-            SystemLoadData("Ticket Booth", predicted_consumption['ticket_booth_power'], predicted_consumption['ticket_booth_power'], 5.0, 35.0, "High", "Normal", 0.92)
-        ]
-        
-        # Smart power allocation
-        allocated_power, remaining_power, allocation_log = smart_agent.allocate_power(
-            piezo_generation_w + (st.session_state.battery_energy * 1000 / 0.5),  # Assume battery can provide 2kWh/min
-            systems_to_manage,
-            context
-        )
-        
-        # Update battery and history
-        energy_balance_w = piezo_generation_w - total_consumption_w
-        energy_balance_kwh = energy_balance_w * (30 / 60) / 1000  # for 30 min interval
-        st.session_state.battery_energy = max(0, min(100, st.session_state.battery_energy + energy_balance_kwh))
-        
-        st.session_state.footfall_history.append(context.footfall)
-        st.session_state.energy_history.append(piezo_generation_w)
-        st.session_state.consumption_history.append(total_consumption_w)
-        st.session_state.balance_history.append(energy_balance_w)
-        
-        # Display real-time metrics
-        display_metrics(piezo_generation_w, total_consumption_w, st.session_state.battery_energy)
-        
-        # Display detailed allocation log
-        st.markdown("---")
-        st.subheader("🔍 Power Allocation Log")
-        log_df = pd.DataFrame(allocation_log)
-        st.table(log_df)
-
-        # Display charts
-        st.markdown("---")
-        st.subheader("📈 Energy Metrics History")
-        col_chart1, col_chart2 = st.columns(2)
-        
-        with col_chart1:
-            st.line_chart(pd.DataFrame({
-                "Piezo Generation (W)": st.session_state.energy_history,
-                "Total Consumption (W)": st.session_state.consumption_history
-            }))
-        with col_chart2:
-            st.bar_chart(pd.DataFrame({
-                "Energy Balance (W)": st.session_state.balance_history
-            }))
-            
-        # Update time
-        st.session_state.last_update_time += timedelta(minutes=30)
-        
-        # Rerun to simulate next step
-        time.sleep(1)
-        st.experimental_rerun()
-
-def get_footfall_for_time(current_time):
-    current_time_str = current_time.strftime("%H:%M")
-    
-    # Check for specific schedule events
-    for event in STATION_SCHEDULE:
-        event_time_obj = datetime.strptime(event["time"], "%H:%M").time()
-        current_time_obj = current_time.time()
-        
-        if event_time_obj.hour == current_time_obj.hour and abs(event_time_obj.minute - current_time_obj.minute) < 30:
-            footfall = random.randint(event["footfall_range"][0], event["footfall_range"][1])
-            return footfall, event["event_type"]
-            
-    # Default footfall
-    hour = current_time.hour
-    if 6 <= hour < 10:  # Morning rush
-        footfall = random.randint(300, 500)
-    elif 10 <= hour < 16: # Mid-day
-        footfall = random.randint(150, 300)
-    elif 16 <= hour < 20: # Evening rush
-        footfall = random.randint(400, 600)
-    else: # Off-peak
-        footfall = random.randint(50, 150)
-        
-    return footfall, "None"
-
-def generate_ambient_temp(current_time):
-    hour = current_time.hour
-    if 6 <= hour < 10:
-        return random.uniform(18, 24)
-    elif 10 <= hour < 16:
-        return random.uniform(25, 30)
-    elif 16 <= hour < 20:
-        return random.uniform(22, 28)
-    else:
-        return random.uniform(15, 20)
-
-def display_metrics(piezo_gen, total_cons, battery_level):
-    st.markdown("### 📊 Real-time Metrics")
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown(
-            f'<div class="metric-card"><h4>Instantaneous Generation:</h4>'
-            f'<h2><span style="color:#667eea;">{piezo_gen:.2f} W</span></h2></div>',
-            unsafe_allow_html=True
-        )
-    with col2:
-        st.markdown(
-            f'<div class="metric-card"><h4>Total Consumption:</h4>'
-            f'<h2><span style="color:#764ba2;">{total_cons:.2f} W</span></h2></div>',
-            unsafe_allow_html=True
-        )
-    with col3:
-        status_color = "green" if battery_level > 70 else ("orange" if battery_level > 30 else "red")
-        st.markdown(
-            f'<div class="metric-card"><h4>Battery Level:</h4>'
-            f'<h2><span style="color:{status_color};">{battery_level:.1f}%</span></h2></div>',
-            unsafe_allow_html=True
-        )
-
-def schedule_page():
-    st.header("📅 Station Schedule & Events")
-    st.write("This table shows the key events and associated footfall ranges throughout a typical day at the station, which influence energy generation and consumption predictions.")
-    
-    schedule_data = pd.DataFrame(STATION_SCHEDULE)
-    st.table(schedule_data)
-
-def ai_models_page(piezo_predictor, consumption_predictor):
-    st.header("🤖 AI Model Performance")
-    st.write("This section provides details on the performance of the AI models used in the simulation.")
-
-    if not st.session_state.models_trained:
-        st.warning("Models are not yet trained. Run the simulation page first to train the models.")
-        return
-
-    st.markdown("---")
-    st.subheader("Piezo Energy Predictor (Linear Regression)")
-    st.write("This model predicts energy generation from footfall data.")
-    st.write(f"**Mean Absolute Error (MAE):** {piezo_predictor.mae:.4f}")
-    st.write(f"**R-squared (R²):** {piezo_predictor.r2:.4f}")
-    st.info("A lower MAE and an R² closer to 1.0 indicate a more accurate model.")
-
-    st.markdown("---")
-    st.subheader("System Consumption Predictor (Random Forest)")
-    st.write("This model predicts the power consumption of various station systems.")
-    st.write("The performance metrics for this model are stored internally for each system (CCTV, Lighting, etc.).")
-    st.info("The Random Forest model is used here for its ability to capture non-linear relationships and provide accurate consumption forecasts.")
+        ai_models_page()
 
 if __name__ == "__main__":
-    main()
+
+    app_main()
+
