@@ -11,10 +11,11 @@ from sklearn.metrics import mean_absolute_error, r2_score
 import io
 
 # --- Custom CSS to hide the GitHub icon ---
-# This CSS is applied globally to the Streamlit app.
+# This CSS is applied globally to the Streamlit app's header.
+# Using `display: none !important` is a more robust way to ensure it's hidden.
 hide_github_icon = """
 #GithubIcon {
-    visibility: hidden;
+    display: none !important;
 }
 """
 st.markdown(hide_github_icon, unsafe_allow_html=True)
