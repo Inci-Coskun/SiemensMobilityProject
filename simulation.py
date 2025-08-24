@@ -525,11 +525,13 @@ class AIController:
             
             # Update battery with energy management
             energy_generation_rate = predicted_energy * 0.85  # 15% conversion loss
+            total_consumption = sum(allocated_power.values())  # Calculate actual consumption
+            net_energy_change = energy_generation_rate - total_consumption
             battery_charge_rate = min(remaining_power * 0.1, 5.0)  # Max 5W charging rate
-            st.session_state.battery_energy = min(
-                st.session_state.battery_energy + battery_charge_rate, 
+            st.session_state.battery_energy = max(0, min(
+                st.session_state.battery_energy + net_energy_change + battery_charge_rate, 
                 100.0  # Max battery capacity
-            )
+            ))
             
             # --- Main Display Area ---
             st.markdown("---")
@@ -971,5 +973,6 @@ def app_main():
 if __name__ == "__main__":
 
     app_main()
+
 
 
