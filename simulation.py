@@ -10,7 +10,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score
 import io
 
-# Add custom CSS to hide the GitHub icon
+# --- Custom CSS to hide the GitHub icon ---
+# This CSS is applied globally to the Streamlit app.
 hide_github_icon = """
 #GithubIcon {
     visibility: hidden;
@@ -542,7 +543,7 @@ class AIController:
             
             # Power allocation
             allocated_power, remaining_power, allocation_log = self.allocation_agent.allocate_power(
-                total_available, system_loads, context_data
+                total_available, systems=system_loads, context_data=context_data
             )
             
             # Update battery with energy management
