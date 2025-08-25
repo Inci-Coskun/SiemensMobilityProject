@@ -259,33 +259,33 @@ class PiezoEnergyPredictor:
     def predict_power_from_footfall(self, footfall, avg_weight=65):
         if not self.is_trained:
             self.train_model()
-            
+
         # Enhanced footfall to energy conversion with better scaling
         base_voltage = min(footfall * 0.15 + random.uniform(-1, 3), 55)  # Better scaling
         current = 50 + random.uniform(-3, 8)  # More realistic current variation
-        
+
         # Weighted random location selection
         location_weights = {'Center': 0.5, 'Edge': 0.3, 'Corner': 0.2}
-        location = random.choices(list(location_weights.keys()), 
-                                weights=list(location_weights.values()))[0]
-        
+        location = random.choices(list(location_weights.keys()),
+                                 weights=list(location_weights.values()))[0]
+
         location_center = 1 if location == 'Center' else 0
         location_edge = 1 if location == 'Edge' else 0
-        
+
         # Create feature array with proper naming
-        features = pd.DataFrame([[base_voltage, current, avg_weight, location_center, location_edge]], 
-                              columns=self.feature_names)
-        
+        features = pd.DataFrame([[base_voltage, current, avg_weight, location_center, location_edge]],
+                                columns=self.feature_names)
+
         predicted_power_mw = max(0, self.model.predict(features)[0])
-        
+
         # Enhanced scaling: convert mW to W and apply footfall multiplier
         # Multiply by number of piezo tiles (assume 10-20 tiles in station)
         num_tiles = 15
         footfall_efficiency = min(1.0, footfall / 200.0)  # Efficiency decreases with overcrowding
-        
+
         total_power_w = (predicted_power_mw / 1000) * num_tiles * footfall_efficiency
-        
-        return max(total_power_w, 0.1)  # Minimum baseline power
+
+        return total_power_w
 
 class SystemConsumptionPredictor:
     def __init__(self):
@@ -971,4 +971,3 @@ def app_main():
 if __name__ == "__main__":
 
     app_main()
-
