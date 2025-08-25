@@ -958,7 +958,7 @@ def app_main():
             battery_health = st.session_state.battery_energy / 100.0
             if battery_health > 0.7:
                 st.success(f"🔋 Battery: {battery_health*100:.0f}%")
-            elif battery_health > 0.3:
+         elif battery_health > 0.3:
                 st.warning(f"🔋 Battery: {battery_health*100:.0f}%")
             else:
                 st.error(f"🔋 Battery: {battery_health*100:.0f}%")
@@ -976,6 +976,7 @@ def app_main():
 if __name__ == "__main__":
 
     app_main()
+
 
 
 
