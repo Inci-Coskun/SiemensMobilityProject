@@ -559,13 +559,13 @@ class AIController:
                 st.dataframe(allocation_df, use_container_width=True)
                 
                 # Power balance indicator
-                total_allocated = sum(allocated_power.values())
-                if total_allocated <= total_available * 0.8:
-                    st.success(f"✅ Power Balance: Optimal ({total_allocated:.1f}W / {total_available:.1f}W)")
-                elif total_allocated <= total_available:
-                    st.warning(f"⚠️ Power Balance: Tight ({total_allocated:.1f}W / {total_available:.1f}W)")
-                else:
-                    st.error(f"❌ Power Balance: Deficit ({total_allocated:.1f}W / {total_available:.1f}W)")
+                # total_allocated = sum(allocated_power.values())
+                # if total_allocated <= total_available * 0.8:
+                #     st.success(f"✅ Power Balance: Optimal ({total_allocated:.1f}W / {total_available:.1f}W)")
+                # elif total_allocated <= total_available:
+                #     st.warning(f"⚠️ Power Balance: Tight ({total_allocated:.1f}W / {total_available:.1f}W)")
+                # else:
+                #     st.error(f"❌ Power Balance: Deficit ({total_allocated:.1f}W / {total_available:.1f}W)")
                 
             with col2:
                 st.subheader("🌡️ Environmental Factors")
@@ -960,4 +960,5 @@ def app_main():
 
 if __name__ == "__main__":
     app_main()
+
 
