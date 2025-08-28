@@ -118,42 +118,42 @@ csv_data = """voltage(v),current(uA),weight(kgs),step_location,Power(mW)
 
 # --- System Energy Consumption Dataset (Synthetic) - Updated for 3 systems ---
 system_consumption_data = """time,day_type,footfall,ambient_temp,cctv_power,public_address_power,ticket_booth_power
-06:00,Weekday,120,18,25.2,13.1,8.3
-06:30,Weekday,150,19,26.8,14.5,10.6
-07:00,Weekday,380,20,32.1,21.2,18.4
-07:30,Weekday,450,21,34.3,24.8,25.7
-08:00,Weekday,420,22,33.7,23.9,22.8
-08:30,Weekday,200,23,27.9,16.1,12.2
-09:00,Weekday,180,24,27.2,15.3,11.8
-10:00,Weekday,160,25,26.5,14.7,10.4
-11:00,Weekday,140,26,25.8,13.8,9.1
-12:00,Weekday,350,27,31.6,20.5,17.2
-12:30,Weekday,410,28,33.2,22.7,21.5
-13:00,Weekday,380,28,32.4,21.8,19.1
-14:00,Weekday,220,27,28.3,16.9,13.8
-15:00,Weekday,190,26,27.6,15.7,12.5
-16:00,Weekday,160,25,26.7,14.9,10.8
-17:00,Weekday,480,24,35.1,26.2,28.9
-17:30,Weekday,510,23,36.4,27.8,31.2
-18:00,Weekday,460,22,34.8,25.5,27.1
-19:00,Weekday,280,21,29.7,18.3,15.4
-20:00,Weekday,240,20,28.9,17.1,14.1
-21:00,Weekday,320,19,30.8,19.7,16.8
-21:30,Weekday,180,18,27.4,15.1,12.2
-22:00,Weekday,80,17,24.1,11.8,7.9
-23:00,Weekday,60,16,23.2,10.5,6.2
-00:00,Weekday,20,15,22.1,8.9,4.8
-06:00,Weekend,80,18,23.8,11.2,6.7
-07:00,Weekend,120,20,25.3,13.4,9.1
-08:00,Weekend,200,22,27.8,15.9,12.8
-10:00,Weekend,280,25,29.4,18.1,15.9
-12:00,Weekend,350,28,31.8,20.7,18.6
-14:00,Weekend,320,30,30.9,19.8,17.1
-16:00,Weekend,290,29,29.8,18.6,16.3
-18:00,Weekend,380,27,32.3,21.6,19.8
-20:00,Weekend,240,24,28.7,17.0,14.9
-22:00,Weekend,120,21,25.1,13.2,9.8
-00:00,Weekend,30,18,22.5,9.3,5.5"""
+06:00,Weekday,120,18,8.2,4.1,2.8
+06:30,Weekday,150,19,8.8,4.5,3.6
+07:00,Weekday,380,20,10.1,6.2,5.4
+07:30,Weekday,450,21,11.3,7.8,6.7
+08:00,Weekday,420,22,10.7,6.9,5.8
+08:30,Weekday,200,23,8.9,5.1,3.2
+09:00,Weekday,180,24,8.7,4.3,3.1
+10:00,Weekday,160,25,8.5,4.7,2.8
+11:00,Weekday,140,26,8.2,3.8,2.6
+12:00,Weekday,350,27,10.6,6.5,4.7
+12:30,Weekday,410,28,11.2,7.7,6.1
+13:00,Weekday,380,28,10.4,6.8,5.1
+14:00,Weekday,220,27,8.9,4.9,3.8
+15:00,Weekday,190,26,8.6,4.7,3.2
+16:00,Weekday,160,25,8.3,4.2,2.8
+17:00,Weekday,480,24,11.5,8.2,7.9
+17:30,Weekday,510,23,11.8,8.8,8.2
+18:00,Weekday,460,22,11.2,7.5,6.9
+19:00,Weekday,280,21,9.2,5.3,4.1
+20:00,Weekday,240,20,8.9,4.8,3.8
+21:00,Weekday,320,19,9.8,5.7,4.2
+21:30,Weekday,180,18,8.4,4.1,3.1
+22:00,Weekday,80,17,7.8,2.8,2.2
+23:00,Weekday,60,16,7.2,2.5,1.8
+00:00,Weekday,20,15,6.8,1.9,1.2
+06:00,Weekend,80,18,7.8,2.2,1.7
+07:00,Weekend,120,20,8.3,3.4,2.8
+08:00,Weekend,200,22,8.8,4.9,3.5
+10:00,Weekend,280,25,9.4,5.1,4.2
+12:00,Weekend,350,28,10.8,6.7,5.1
+14:00,Weekend,320,30,9.9,5.8,4.6
+16:00,Weekend,290,29,9.5,5.2,4.3
+18:00,Weekend,380,27,10.3,6.6,5.8
+20:00,Weekend,240,24,8.7,4.0,3.9
+22:00,Weekend,120,21,8.1,3.2,2.5
+00:00,Weekend,30,18,7.2,2.3,1.8"""
 
 # --- CSS Styling ---
 def local_css():
@@ -260,14 +260,14 @@ class PiezoEnergyPredictor:
         if not self.is_trained:
             self.train_model()
 
-        # Enhanced footfall to energy conversion with better scaling
-        base_voltage = min(footfall * 0.15 + random.uniform(-1, 3), 55)  # Better scaling
-        current = 50 + random.uniform(-3, 8)  # More realistic current variation
+        # Enhanced footfall to energy conversion with realistic scaling
+        base_voltage = min(footfall * 0.3 + random.uniform(-2, 5), 55)  # Increased scaling
+        current = 50 + random.uniform(-5, 10)  # More variation
 
         # Weighted random location selection
         location_weights = {'Center': 0.5, 'Edge': 0.3, 'Corner': 0.2}
         location = random.choices(list(location_weights.keys()),
-                                 weights=list(location_weights.values()))[0]
+                                weights=list(location_weights.values()))[0]
 
         location_center = 1 if location == 'Center' else 0
         location_edge = 1 if location == 'Edge' else 0
@@ -278,14 +278,15 @@ class PiezoEnergyPredictor:
 
         predicted_power_mw = max(0, self.model.predict(features)[0])
 
-        # Enhanced scaling: convert mW to W and apply footfall multiplier
-        # Multiply by number of piezo tiles (assume 10-20 tiles in station)
-        num_tiles = 15
-        footfall_efficiency = min(1.0, footfall / 200.0)  # Efficiency decreases with overcrowding
+        # Much better scaling: convert mW to W and apply footfall multiplier
+        # Multiply by number of piezo tiles and add footfall boost
+        num_tiles = 25  # Increased number of tiles
+        footfall_efficiency = min(1.2, footfall / 150.0)  # Better efficiency curve
+        footfall_boost = max(1.0, footfall / 100.0)  # Direct footfall multiplier
 
-        total_power_w = (predicted_power_mw / 1000) * num_tiles * footfall_efficiency
+        total_power_w = (predicted_power_mw / 1000) * num_tiles * footfall_efficiency * footfall_boost
 
-        return total_power_w
+        return max(total_power_w, footfall * 0.05)  # Minimum baseline generation
 
 class SystemConsumptionPredictor:
     def __init__(self):
@@ -432,38 +433,37 @@ def generate_system_loads(context_data, consumption_predictor):
     predictions = consumption_predictor.predict_consumption(context_data)
     
     systems = []
-    
-    # CCTV System - CRITICAL priority
+    # CCTV System - CRITICAL priority (reduced power consumption)
     systems.append(SystemLoadData(
         system_id="CCTV Security",
-        base_power=predictions['cctv_power'],
-        predicted_power=predictions['cctv_power'] * (1 + random.uniform(-0.1, 0.1)),
-        min_power=predictions['cctv_power'] * 0.7,
-        max_power=predictions['cctv_power'] * 1.3,
+        base_power=predictions['cctv_power'] * 0.7,  # Reduced by 30%
+        predicted_power=predictions['cctv_power'] * 0.7 * (1 + random.uniform(-0.1, 0.1)),
+        min_power=predictions['cctv_power'] * 0.5,
+        max_power=predictions['cctv_power'] * 0.9,
         priority="Critical",
         status="Active",
         efficiency=0.95
     ))
     
-    # Ticket Booth - HIGH priority
+    # Ticket Booth - HIGH priority (reduced power consumption)
     systems.append(SystemLoadData(
         system_id="Ticket Booth",
-        base_power=predictions['ticket_booth_power'],
-        predicted_power=predictions['ticket_booth_power'] * (1 + random.uniform(-0.1, 0.1)),
-        min_power=predictions['ticket_booth_power'] * 0.8,
-        max_power=predictions['ticket_booth_power'] * 1.1,
+        base_power=predictions['ticket_booth_power'] * 0.6,  # Reduced by 40%
+        predicted_power=predictions['ticket_booth_power'] * 0.6 * (1 + random.uniform(-0.1, 0.1)),
+        min_power=predictions['ticket_booth_power'] * 0.4,
+        max_power=predictions['ticket_booth_power'] * 0.8,
         priority="High",
         status="Active",
         efficiency=0.92
     ))
     
-    # Public Address System - LOW priority
+    # Public Address System - LOW priority (reduced power consumption)
     systems.append(SystemLoadData(
         system_id="Public Address",
-        base_power=predictions['public_address_power'],
-        predicted_power=predictions['public_address_power'] * (1 + random.uniform(-0.2, 0.2)),
-        min_power=predictions['public_address_power'] * 0.3,
-        max_power=predictions['public_address_power'] * 1.5,
+        base_power=predictions['public_address_power'] * 0.5,  # Reduced by 50%
+        predicted_power=predictions['public_address_power'] * 0.5 * (1 + random.uniform(-0.2, 0.2)),
+        min_power=predictions['public_address_power'] * 0.2,
+        max_power=predictions['public_address_power'] * 0.8,
         priority="Low",
         status="Active",
         efficiency=0.85
@@ -511,13 +511,27 @@ class AIController:
                 total_available, system_loads, context_data
             )
             
-            # Update battery with energy management
-            energy_generation_rate = predicted_energy * 0.85  # 15% conversion loss
-            battery_charge_rate = min(remaining_power * 0.1, 5.0)  # Max 5W charging rate
-            st.session_state.battery_energy = min(
-                st.session_state.battery_energy + battery_charge_rate, 
-                100.0  # Max battery capacity
-            )
+            # Realistic battery management - FIXED
+            total_consumption = sum(allocated_power.values())
+            
+            # Only use what's actually needed from available power
+            actual_power_used = min(total_consumption, total_available)
+            energy_from_generation = min(predicted_energy, actual_power_used)
+            energy_from_battery = actual_power_used - energy_from_generation
+            
+            # Update battery based on actual usage
+            if energy_from_battery > 0:
+                # Battery is being discharged
+                st.session_state.battery_energy = max(
+                    st.session_state.battery_energy - energy_from_battery, 0.0
+                )
+            elif predicted_energy > actual_power_used:
+                # Surplus energy charges battery
+                surplus = predicted_energy - actual_power_used
+                charge_amount = surplus * 0.85  # 85% charging efficiency
+                st.session_state.battery_energy = min(
+                    st.session_state.battery_energy + charge_amount, 100.0
+                )
             
             # --- Main Display Area ---
             st.markdown("---")
@@ -561,8 +575,8 @@ class AIController:
                 st.metric("Day Type", context_data.day_type)
                 
                 # Energy efficiency indicators
-                generation_efficiency = (predicted_energy / max(context_data.footfall * 0.01, 0.1)) * 100
-                st.metric("Generation Efficiency", f"{generation_efficiency:.1f}%")
+                #generation_efficiency = (predicted_energy / max(context_data.footfall * 0.01, 0.1)) * 100
+                #st.metric("Generation Efficiency", f"{generation_efficiency:.1f}%")
             
             # Detailed Log
             with st.expander("🔍 Detailed AI Analysis Log", expanded=False):
@@ -633,7 +647,7 @@ class AIController:
                     with col3:
                         total_generated = history_df['energy_generated'].sum()
                         total_consumed = history_df['total_allocated'].sum()
-                        efficiency = (total_consumed / total_generated) * 100 if total_generated > 0 else 0
+                        efficiency = min(100, (total_generated / total_consumed) * 100) if total_consumed > 0 else 100
                         st.metric("Energy Usage Efficiency", f"{efficiency:.1f}%")
                         
                     with col4:
