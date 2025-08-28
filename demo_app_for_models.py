@@ -473,10 +473,12 @@ def generate_system_loads(context_data, consumption_predictor):
 
 # --- Controller ---
 class AIController:
-    def __init__(self):
+    def __init__(self, base_sleep, base_step):
         self.piezo_predictor = PiezoEnergyPredictor()
         self.consumption_predictor = SystemConsumptionPredictor()
         self.allocation_agent = SmartAllocationAgent()
+        self.base_sleep = base_sleep
+        self.base_step = base_step
         
         # Train models
         if "models_trained" not in st.session_state:
@@ -507,11 +509,7 @@ class AIController:
             total_available = predicted_energy + st.session_state.battery_energy
             
             # --- Allocation and Battery Logic ---
-
-            # Önce sistemin ihtiyacını hesapla
             demand = sum([s.predicted_power for s in system_loads])
-
-            # Üretim yetiyorsa, direk üretimden karşıla
             if predicted_energy >= demand:
                 allocated_power, remaining_power, allocation_log = self.allocation_agent.allocate_power(
                     predicted_energy, system_loads, context_data
@@ -522,12 +520,10 @@ class AIController:
                     100.0
                 )
             else:
-                # Önce üretim kadarını kullan
                 allocated_power, _, allocation_log = self.allocation_agent.allocate_power(
                     predicted_energy, system_loads, context_data
                 )
                 deficit = demand - predicted_energy
-                # Eksik bataryadan
                 if st.session_state.battery_energy >= deficit:
                     st.session_state.battery_energy -= deficit
                     remaining_power = 0
@@ -560,15 +556,7 @@ class AIController:
                 st.subheader("📊 System Power Allocation")
                 allocation_df = pd.DataFrame(allocation_log)
                 st.dataframe(allocation_df, use_container_width=True)
-                
-                # Power balance indicator
-                # total_allocated = sum(allocated_power.values())
-                # if total_allocated <= total_available * 0.8:
-                #     st.success(f"✅ Power Balance: Optimal ({total_allocated:.1f}W / {total_available:.1f}W)")
-                # elif total_allocated <= total_available:
-                #     st.warning(f"⚠️ Power Balance: Tight ({total_allocated:.1f}W / {total_available:.1f}W)")
-                # else:
-                #     st.error(f"❌ Power Balance: Deficit ({total_allocated:.1f}W / {total_available:.1f}W)")
+
                 
             with col2:
                 st.subheader("🌡️ Environmental Factors")
@@ -610,16 +598,15 @@ class AIController:
                 "battery_level": st.session_state.battery_energy
             })
             
-            # Simulation speed control
             if "Arrival" in context_data.event_triggers or "Departure" in context_data.event_triggers:
-                sleep_time = 2
-                time_skip = 180  # 3 minutes
+                sleep_time = self.base_sleep
+                time_skip = self.base_step
             elif "Closure" in context_data.event_triggers:
-                sleep_time = 8
-                time_skip = 1800  # 30 minutes
+                sleep_time = self.base_sleep * 2 
+                time_skip = self.base_step * 6 
             else:
-                sleep_time = 4
-                time_skip = 300  # 5 minutes
+                sleep_time = self.base_sleep
+                time_skip = self.base_step
             
             # Update simulation time
             st.session_state.simulated_time += timedelta(seconds=time_skip)
@@ -873,7 +860,9 @@ def simulation_page():
             st.rerun()
     
     with col3:
-        simulation_speed = st.selectbox("⚡ Simulation Speed", ["Slow", "Normal", "Fast"], index=0)
+        speed_label = st.selectbox("⚡ Simulation Speed", ["Slow", "Normal", "Fast"], index=0)
+        speed_cfg = {"Slow": (4, 300), "Normal": (2, 300), "Fast": (0.2, 300)}
+        base_sleep, base_step = speed_cfg[speed_label]
     
     # Current status display
     st.markdown("---")
@@ -904,7 +893,7 @@ def simulation_page():
         st.error(f"🔋 Battery Status: Low ({battery_percentage:.0f}%)")
     
     # AI Controller execution
-    controller = AIController()
+    controller = AIController(base_sleep=base_sleep, base_step=base_step)
     controller.run_control_loop()
 
 # --- Main Application ---
