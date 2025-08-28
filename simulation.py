@@ -116,44 +116,44 @@ csv_data = """voltage(v),current(uA),weight(kgs),step_location,Power(mW)
 9.90,47.17,57.00,Center,0.47
 25.20,49.57,70.00,Edge,1.25"""
 
-# --- System Energy Consumption Dataset (Synthetic) ---
-system_consumption_data = """time,day_type,footfall,ambient_temp,cctv_power,panels_power,ventilation_power,ticket_booth_power
-06:00,Weekday,120,18,25.2,13.1,38.5,8.3
-06:30,Weekday,150,19,26.8,14.5,42.1,10.6
-07:00,Weekday,380,20,32.1,21.2,55.8,18.4
-07:30,Weekday,450,21,34.3,24.8,65.2,25.7
-08:00,Weekday,420,22,33.7,23.9,62.1,22.8
-08:30,Weekday,200,23,27.9,16.1,44.7,12.2
-09:00,Weekday,180,24,27.2,15.3,41.9,11.8
-10:00,Weekday,160,25,26.5,14.7,40.2,10.4
-11:00,Weekday,140,26,25.8,13.8,38.8,9.1
-12:00,Weekday,350,27,31.6,20.5,54.3,17.2
-12:30,Weekday,410,28,33.2,22.7,60.8,21.5
-13:00,Weekday,380,28,32.4,21.8,56.7,19.1
-14:00,Weekday,220,27,28.3,16.9,46.4,13.8
-15:00,Weekday,190,26,27.6,15.7,43.1,12.5
-16:00,Weekday,160,25,26.7,14.9,40.6,10.8
-17:00,Weekday,480,24,35.1,26.2,68.7,28.9
-17:30,Weekday,510,23,36.4,27.8,72.3,31.2
-18:00,Weekday,460,22,34.8,25.5,67.1,27.1
-19:00,Weekday,280,21,29.7,18.3,49.6,15.4
-20:00,Weekday,240,20,28.9,17.1,47.2,14.1
-21:00,Weekday,320,19,30.8,19.7,52.4,16.8
-21:30,Weekday,180,18,27.4,15.1,42.5,12.2
-22:00,Weekday,80,17,24.1,11.8,35.3,7.9
-23:00,Weekday,60,16,23.2,10.5,33.1,6.2
-00:00,Weekday,20,15,22.1,8.9,30.2,4.8
-06:00,Weekend,80,18,23.8,11.2,34.1,6.7
-07:00,Weekend,120,20,25.3,13.4,37.9,9.1
-08:00,Weekend,200,22,27.8,15.9,43.6,12.8
-10:00,Weekend,280,25,29.4,18.1,48.9,15.9
-12:00,Weekend,350,28,31.8,20.7,54.7,18.6
-14:00,Weekend,320,30,30.9,19.8,52.8,17.1
-16:00,Weekend,290,29,29.8,18.6,50.1,16.3
-18:00,Weekend,380,27,32.3,21.6,56.4,19.8
-20:00,Weekend,240,24,28.7,17.0,47.0,14.9
-22:00,Weekend,120,21,25.1,13.2,37.6,9.8
-00:00,Weekend,30,18,22.5,9.3,31.1,5.5"""
+# --- System Energy Consumption Dataset (Synthetic) - Updated for 3 systems ---
+system_consumption_data = """time,day_type,footfall,ambient_temp,cctv_power,public_address_power,ticket_booth_power
+06:00,Weekday,120,18,25.2,13.1,8.3
+06:30,Weekday,150,19,26.8,14.5,10.6
+07:00,Weekday,380,20,32.1,21.2,18.4
+07:30,Weekday,450,21,34.3,24.8,25.7
+08:00,Weekday,420,22,33.7,23.9,22.8
+08:30,Weekday,200,23,27.9,16.1,12.2
+09:00,Weekday,180,24,27.2,15.3,11.8
+10:00,Weekday,160,25,26.5,14.7,10.4
+11:00,Weekday,140,26,25.8,13.8,9.1
+12:00,Weekday,350,27,31.6,20.5,17.2
+12:30,Weekday,410,28,33.2,22.7,21.5
+13:00,Weekday,380,28,32.4,21.8,19.1
+14:00,Weekday,220,27,28.3,16.9,13.8
+15:00,Weekday,190,26,27.6,15.7,12.5
+16:00,Weekday,160,25,26.7,14.9,10.8
+17:00,Weekday,480,24,35.1,26.2,28.9
+17:30,Weekday,510,23,36.4,27.8,31.2
+18:00,Weekday,460,22,34.8,25.5,27.1
+19:00,Weekday,280,21,29.7,18.3,15.4
+20:00,Weekday,240,20,28.9,17.1,14.1
+21:00,Weekday,320,19,30.8,19.7,16.8
+21:30,Weekday,180,18,27.4,15.1,12.2
+22:00,Weekday,80,17,24.1,11.8,7.9
+23:00,Weekday,60,16,23.2,10.5,6.2
+00:00,Weekday,20,15,22.1,8.9,4.8
+06:00,Weekend,80,18,23.8,11.2,6.7
+07:00,Weekend,120,20,25.3,13.4,9.1
+08:00,Weekend,200,22,27.8,15.9,12.8
+10:00,Weekend,280,25,29.4,18.1,15.9
+12:00,Weekend,350,28,31.8,20.7,18.6
+14:00,Weekend,320,30,30.9,19.8,17.1
+16:00,Weekend,290,29,29.8,18.6,16.3
+18:00,Weekend,380,27,32.3,21.6,19.8
+20:00,Weekend,240,24,28.7,17.0,14.9
+22:00,Weekend,120,21,25.1,13.2,9.8
+00:00,Weekend,30,18,22.5,9.3,5.5"""
 
 # --- CSS Styling ---
 def local_css():
@@ -303,7 +303,7 @@ class SystemConsumptionPredictor:
         
         X = df[self.feature_names].copy()
         
-        systems = ['cctv_power', 'panels_power', 'ventilation_power', 'ticket_booth_power']
+        systems = ['cctv_power', 'public_address_power', 'ticket_booth_power']
         
         for system in systems:
             y = df[system]
@@ -433,7 +433,7 @@ def generate_system_loads(context_data, consumption_predictor):
     
     systems = []
     
-    # CCTV System
+    # CCTV System - CRITICAL priority
     systems.append(SystemLoadData(
         system_id="CCTV Security",
         base_power=predictions['cctv_power'],
@@ -445,31 +445,7 @@ def generate_system_loads(context_data, consumption_predictor):
         efficiency=0.95
     ))
     
-    # Information Panels
-    systems.append(SystemLoadData(
-        system_id="Info Panels",
-        base_power=predictions['panels_power'],
-        predicted_power=predictions['panels_power'] * (1 + random.uniform(-0.15, 0.15)),
-        min_power=predictions['panels_power'] * 0.5,
-        max_power=predictions['panels_power'] * 1.2,
-        priority="High",
-        status="Active",
-        efficiency=0.88
-    ))
-    
-    # Ventilation System
-    systems.append(SystemLoadData(
-        system_id="Ventilation",
-        base_power=predictions['ventilation_power'],
-        predicted_power=predictions['ventilation_power'] * (1 + random.uniform(-0.2, 0.2)),
-        min_power=predictions['ventilation_power'] * 0.6,
-        max_power=predictions['ventilation_power'] * 1.4,
-        priority="Medium",
-        status="Active",
-        efficiency=0.82
-    ))
-    
-    # Ticket Booth
+    # Ticket Booth - HIGH priority
     systems.append(SystemLoadData(
         system_id="Ticket Booth",
         base_power=predictions['ticket_booth_power'],
@@ -479,6 +455,18 @@ def generate_system_loads(context_data, consumption_predictor):
         priority="High",
         status="Active",
         efficiency=0.92
+    ))
+    
+    # Public Address System - LOW priority
+    systems.append(SystemLoadData(
+        system_id="Public Address",
+        base_power=predictions['public_address_power'],
+        predicted_power=predictions['public_address_power'] * (1 + random.uniform(-0.2, 0.2)),
+        min_power=predictions['public_address_power'] * 0.3,
+        max_power=predictions['public_address_power'] * 1.5,
+        priority="Low",
+        status="Active",
+        efficiency=0.85
     ))
     
     return systems
@@ -590,8 +578,6 @@ class AIController:
                 
                 st.info("🧠 Smart Allocation Agent Making Decisions...")
                 st.write(f"Total Available Power: {total_available:.2f}W")
-                #st.write(f"Emergency Factor: {emergency_factor:.1f}x")
-                #st.write(f"Rush Hour Factor: {rush_hour_factor:.1f}x")
                 st.write("Allocation Strategy: Priority-based optimization with efficiency consideration")
             
             # Historical data logging
@@ -801,7 +787,7 @@ total_power_w = (predicted_power_mw / 1000) * num_tiles * efficiency
     
     st.markdown("### 2. 🏭 System Consumption Prediction Model")
     st.write("**Model Type:** Random Forest Regression")
-    st.write("**Purpose:** Predict CCTV, panels, ventilation, and ticket booth consumption")
+    st.write("**Purpose:** Predict CCTV, public address, and ticket booth consumption")
     
     st.markdown("**🔧 Features:**")
     st.write("- Hour, Pedestrian traffic, Ambient temperature")
@@ -821,8 +807,8 @@ total_power_w = (predicted_power_mw / 1000) * num_tiles * efficiency
     
     st.markdown("**⚖️ Priority System:**")
     st.write("- **Critical (CCTV):** 100% weight - Security system")
-    st.write("- **High (Panels, Ticket):** 80% weight - Essential services") 
-    st.write("- **Medium (Ventilation):** 60% weight - Comfort system")
+    st.write("- **High (Ticket Booth):** 80% weight - Essential services") 
+    st.write("- **Low (Public Address):** 40% weight - Communication system")
     
     st.markdown("**🔄 Dynamic Adjustments:**")
     st.write("- **Emergency factor:** 1.3x power allocation during emergencies")
@@ -969,5 +955,4 @@ def app_main():
         ai_models_page()
 
 if __name__ == "__main__":
-
     app_main()
