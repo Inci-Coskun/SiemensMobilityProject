@@ -828,16 +828,6 @@ total_power_w = (predicted_power_mw / 1000) * num_tiles * efficiency
     st.write("- **Emergency factor:** 1.3x power allocation during emergencies")
     st.write("- **Rush hour factor:** 1.1x during high traffic periods (>400 people)")
     st.write("- **Efficiency tracking:** Real-time system performance monitoring")
-    
-    # Sample data display
-    if st.button("📊 Show Sample Datasets"):
-        st.markdown("#### Piezoelectric Sample Data:")
-        sample_piezo = pd.read_csv(io.StringIO(csv_data)).head(10)
-        st.dataframe(sample_piezo)
-        
-        st.markdown("#### System Consumption Sample Data:")
-        sample_consumption = pd.read_csv(io.StringIO(system_consumption_data)).head(10)
-        st.dataframe(sample_consumption)
 
 def simulation_page():
     """Simulation page."""
@@ -970,3 +960,4 @@ def app_main():
 
 if __name__ == "__main__":
     app_main()
+
