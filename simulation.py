@@ -924,9 +924,9 @@ def app_main():
         
         st.markdown("---")
         st.subheader("ℹ️ System Information")
-        st.write("**Piezo Sensors:** Active")
-        st.write("**AI Models:** Trained")
-        st.write("**Connection:** Online")
+        # st.write("**Piezo Sensors:** Active")
+        # st.write("**AI Models:** Trained")
+        # st.write("**Connection:** Online")
         
         # System health indicators
         if "models_trained" in st.session_state:
@@ -955,3 +955,4 @@ def app_main():
 
 if __name__ == "__main__":
     app_main()
+
