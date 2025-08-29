@@ -280,7 +280,7 @@ class PiezoEnergyPredictor:
 
         # Much better scaling: convert mW to W and apply footfall multiplier
         # Multiply by number of piezo tiles and add footfall boost
-        num_tiles = 25  # Increased number of tiles
+        num_tiles = 15  # Increased number of tiles
         footfall_efficiency = min(1.2, footfall / 150.0)  # Better efficiency curve
         footfall_boost = max(1.0, footfall / 100.0)  # Direct footfall multiplier
 
@@ -385,31 +385,32 @@ class SmartAllocationAgent:
 
 # --- Station Schedule ---
 STATION_SCHEDULE = [
-    {"time": "06:00", "event_type": "Station Opening", "footfall_range": (100, 200)},
-    {"time": "07:15", "event_type": "Train 101 Arrival", "footfall_range": (400, 600)},
-    {"time": "07:20", "event_type": "Train 101 Departure", "footfall_range": (80, 180)},
-    {"time": "08:00", "event_type": "Train 102 Arrival", "footfall_range": (420, 650)},
-    {"time": "08:05", "event_type": "Train 102 Departure", "footfall_range": (100, 200)},
-    {"time": "10:30", "event_type": "Maintenance", "footfall_range": (50, 100)},
-    {"time": "12:30", "event_type": "Train 201 Arrival", "footfall_range": (380, 580)},
-    {"time": "12:35", "event_type": "Train 201 Departure", "footfall_range": (80, 180)},
-    {"time": "14:00", "event_type": "Cleaning", "footfall_range": (60, 120)},
-    {"time": "16:45", "event_type": "Train 301 Arrival", "footfall_range": (450, 700)},
-    {"time": "16:50", "event_type": "Train 301 Departure", "footfall_range": (120, 220)},
-    {"time": "17:30", "event_type": "Train 302 Arrival", "footfall_range": (480, 720)},
-    {"time": "17:35", "event_type": "Train 302 Departure", "footfall_range": (100, 200)},
-    {"time": "21:00", "event_type": "Train 401 Arrival", "footfall_range": (300, 500)},
-    {"time": "21:05", "event_type": "Train 401 Departure", "footfall_range": (80, 180)},
-    {"time": "00:00", "event_type": "Station Closure", "footfall_range": (0, 20)},
+    {"time": "06:00", "event_type": "Station Opening", "footfall_range": (170, 250)},
+    {"time": "07:15", "event_type": "Train 101 Arrival", "footfall_range": (450, 600)},
+    {"time": "07:20", "event_type": "Train 101 Departure", "footfall_range": (150, 230)},
+    {"time": "08:00", "event_type": "Train 102 Arrival", "footfall_range": (470, 650)},
+    {"time": "08:05", "event_type": "Train 102 Departure", "footfall_range": (150, 250)},
+    {"time": "10:30", "event_type": "Maintenance", "footfall_range": (100, 150)},
+    {"time": "12:30", "event_type": "Train 201 Arrival", "footfall_range": (430, 670)},
+    {"time": "12:35", "event_type": "Train 201 Departure", "footfall_range": (160, 270)},
+    {"time": "14:00", "event_type": "Cleaning", "footfall_range": (110, 170)},
+    {"time": "16:45", "event_type": "Train 301 Arrival", "footfall_range": (500, 750)},
+    {"time": "16:50", "event_type": "Train 301 Departure", "footfall_range": (170, 270)},
+    {"time": "17:30", "event_type": "Train 302 Arrival", "footfall_range": (530, 750)},
+    {"time": "17:35", "event_type": "Train 302 Departure", "footfall_range": (150, 250)},
+    {"time": "21:00", "event_type": "Train 401 Arrival", "footfall_range": (350, 550)},
+    {"time": "21:05", "event_type": "Train 401 Departure", "footfall_range": (130, 230)},
+    {"time": "00:00", "event_type": "Station Closure", "footfall_range": (50, 70)}
 ]
+
 
 # --- Mock Data Generators ---
 def get_context_data(sim_time):
     day_type = "Weekday" if sim_time.weekday() < 5 else "Weekend"
     
     event = "Normal Operation"
-    footfall_min = 150
-    footfall_max = 250
+    footfall_min = 175
+    footfall_max = 240
     
     # Check scheduled events
     for scheduled_event in STATION_SCHEDULE:
@@ -491,6 +492,15 @@ class AIController:
     
     def run_control_loop(self):
         if st.session_state.running:
+            # Check for station closure first
+            if st.session_state.simulated_time.hour == 0 and st.session_state.simulated_time.minute == 0:
+                st.session_state.running = False
+                st.session_state.simulated_time = st.session_state.simulated_time.replace(
+                    hour=6, minute=0, second=0) + timedelta(days=1)
+                st.info("🌙 Station closed! Simulation stopped. Click 'Start Simulation' to begin a new day.")
+                st.rerun()
+                return
+            
             # Time control and reset
             if st.session_state.simulated_time.hour >= 24:
                 st.session_state.simulated_time = st.session_state.simulated_time.replace(
@@ -530,7 +540,6 @@ class AIController:
                 else:
                     remaining_power = deficit - st.session_state.battery_energy
                     st.session_state.battery_energy = 0
-
 
             # --- Main Display Area ---
             st.markdown("---")
@@ -610,7 +619,7 @@ class AIController:
             
             # Update simulation time
             st.session_state.simulated_time += timedelta(seconds=time_skip)
-            
+
             time.sleep(sleep_time)
             st.rerun()
         else:
@@ -635,12 +644,6 @@ class AIController:
                         st.metric("Max Pedestrian Traffic", f"{max_footfall} people")
                         
                     with col3:
-                        total_generated = history_df['energy_generated'].sum()
-                        total_consumed = history_df['total_allocated'].sum()
-                        efficiency = min(100, (total_generated / total_consumed) * 100) if total_consumed > 0 else 100
-                        st.metric("Energy Usage Efficiency", f"{efficiency:.1f}%")
-                        
-                    with col4:
                         final_battery = history_df['battery_level'].iloc[-1]
                         st.metric("Final Battery Level", f"{final_battery:.1f}W")
                     
