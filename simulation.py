@@ -1,4 +1,4 @@
-import streamlit as s
+import streamlit as st
 import random
 import time
 from datetime import datetime, timedelta
@@ -954,6 +954,7 @@ def app_main():
 
 if __name__ == "__main__":
     app_main()
+
 
 
 
