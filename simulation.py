@@ -688,10 +688,9 @@ def home_page():
     
     with col2:
         st.write(
-            "Piezoelectric materials generate electrical charge when mechanical stress is applied to them. "
-            "Simply put, they can convert human footsteps into usable electrical energy. "
-            "This simulation demonstrates a micro-grid system that harvests this energy from a busy environment "
-            "like a train station and intelligently distributes it to various systems."
+            "Piezoelectric materials generate electricity from mechanical stress, such as footsteps. "
+            "This simulation shows a micro-grid that harvests this energy in busy areas like train stations and distributes it intelligently. "
+    
         )
 
     st.markdown("---")
@@ -955,4 +954,5 @@ def app_main():
 
 if __name__ == "__main__":
     app_main()
+
 
