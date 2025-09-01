@@ -548,11 +548,11 @@ class AIController:
             st.markdown(
                 f"""
                 <div class="energy-source">
-                    <h3>🔋 Piezoelectric Energy Source</h3>
-                    <p><strong>Instantaneous Generation:</strong> {predicted_energy:.2f} W</p>
-                    <p><strong>Battery Storage:</strong> {st.session_state.battery_energy:.2f} W</p>
-                    <p><strong>Total Available:</strong> {total_available:.2f} W</p>
-                    <p><strong>Generation Efficiency:</strong> 85%</p>
+                    <h3>🔋 Battery & Power Status</h3>
+                    <p>⚡ <strong>Current Output:</strong> {predicted_energy:.2f} W → Power from footsteps now</p>
+                    <p>🔋 <strong>Battery Storage:</strong> {st.session_state.battery_energy:.2f} W → Saved energy for later</p>
+                    <p>📊 <strong>Total Available:</strong> {total_available:.2f} W → Usable power (output + battery)</p>
+                    <p>✅ <strong>Efficiency:</strong> 85% → Conversion of footsteps into electricity</p>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -954,5 +954,6 @@ def app_main():
 
 if __name__ == "__main__":
     app_main()
+
 
 
