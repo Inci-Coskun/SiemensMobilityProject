@@ -871,26 +871,27 @@ def simulation_page():
         base_sleep, base_step = speed_cfg[speed_label]
     
  # Current status display
- st.markdown("---")
- st.subheader("🏢 Station Status")
+    st.markdown("---")
+    st.subheader("🏢 Station Status")
 
- context_data = get_context_data(st.session_state.simulated_time)
+    context_data = get_context_data(st.session_state.simulated_time)
 
- # First row → Time, Pedestrian Count, Temperature
- status_col1, status_col2, status_col3 = st.columns(3)
- with status_col1:
-     st.metric("🕐 Simulation Time", 
-              st.session_state.simulated_time.strftime("%H:%M:%S"))
- with status_col2:
-     st.metric("👥 Pedestrian Count", f"{context_data.footfall} people")
- with status_col3:
-     st.metric("🌡️ Temperature", f"{context_data.ambient_temp:.1f}°C")
+    # First row → Time, Pedestrian Count, Temperature
+    status_col1, status_col2, status_col3 = st.columns(3)
+    with status_col1:
+        st.metric("🕐 Simulation Time", 
+                  st.session_state.simulated_time.strftime("%H:%M:%S"))
+    with status_col2:
+        st.metric("👥 Pedestrian Count", f"{context_data.footfall} people")
+    with status_col3:
+        st.metric("🌡️ Temperature", f"{context_data.ambient_temp:.1f}°C")
 
- # Second row → Next Event alone
- status_col4 = st.columns(1)[0]
- with status_col4:
-     next_event = get_next_event(st.session_state.simulated_time)
-     st.metric("📋 Next Event", next_event)
+    # Second row → Next Event alone
+    status_col4 = st.columns(1)[0]
+    with status_col4:
+        next_event = get_next_event(st.session_state.simulated_time)
+        st.metric("📋 Next Event", next_event)
+
 
     # Battery status indicator
     battery_percentage = (st.session_state.battery_energy / 100.0) * 100
@@ -961,6 +962,7 @@ def app_main():
 
 if __name__ == "__main__":
     app_main()
+
 
 
 
