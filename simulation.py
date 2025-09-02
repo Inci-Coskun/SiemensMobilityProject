@@ -824,7 +824,11 @@ total_power_w = (predicted_power_mw / 1000) * num_tiles * efficiency
 def simulation_page():
     """Simulation page."""
     st.header("⚡ Real-Time Simulation")
-    st.markdown("This simulation shows the AI controller's real-time power allocation decisions.")
+    st.markdown(
+        "This simulation shows the AI controller's real-time power allocation decisions. "
+        "It uses a real piezoelectric dataset for energy generation, while the other system loads "
+        "are synthetically generated to mimic real-world operation."
+    )
     st.markdown("---")
     
     # Session state initialization
@@ -954,6 +958,7 @@ def app_main():
 
 if __name__ == "__main__":
     app_main()
+
 
 
 
